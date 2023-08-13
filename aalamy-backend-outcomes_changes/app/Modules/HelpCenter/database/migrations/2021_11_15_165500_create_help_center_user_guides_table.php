@@ -1,0 +1,45 @@
+<?php
+
+use Carbon\Carbon;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+class CreateHelpCenterUserGuidesTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('help_center_user_guides', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('category_id');
+            $table->foreign('category_id')->references('id')->on('help_center_categories')->onDelete('cascade');
+            $table->string('title');
+            $table->longText('description');
+//            $table->enum('user_type',config('HelpCenter.panel.user_types'));
+            $table->json('user_types');
+            $table->date('date');
+            $table->boolean('deleted')->default(0);
+            $table->boolean('deleted_by_cascade')->default(0);
+            $table->dateTime('deleted_at')->nullable();
+
+
+            $table->timestamps();
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('help_center_user_guides');
+    }
+}

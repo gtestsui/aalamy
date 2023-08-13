@@ -1,0 +1,124 @@
+<?php
+
+
+namespace Modules\DiscussionCorner\Http\DTO;
+
+
+use App\Http\Controllers\Classes\ServicesClass;
+use App\Http\Controllers\DTO\Parents\ObjectData;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Modules\User\Http\Controllers\Classes\UserServices;
+use Modules\User\Models\User;
+
+final class PostData extends ObjectData
+{
+    public ?int      $id=null;
+    public int       $user_id;
+    public ?int      $school_id;
+    public ?int      $educator_id;
+    public string    $text;
+    public int    $priority;
+    public string    $user_type;
+    public bool      $is_approved;
+    public ?array    $pictures;
+    public ?array    $videos;
+    public ?array    $post_files;
+    public ?array    $deleted_picture_ids;
+    public ?array    $deleted_file_ids;
+    public ?array    $deleted_video_ids;
+////    public ?Carbon   $created_at;
+//
+    public static function fromRequest(Request $request,bool $forUpdate=false): self
+    {
+        $user = $request->user();
+        //check if im trying to add in my corner the make it approved auto
+        $is_approved = false;
+        if(isset($request->school_id) && UserServices::isSchool($user))
+            $is_approved = true;
+        if(isset($request->educator_id) && UserServices::isEducator($user))
+            $is_approved = true;
+//        if($forUpdate){
+//            return Self::prepareForUpdate($request,$is_approved);
+//        }else{
+//            return Self::prepareForCreate($request,$is_approved,$user);
+//        }
+
+        return new self([
+            'user_id'    => (int)$user->id,
+            'school_id'   => isset($request->school_id)&&!$forUpdate
+                ?(int)$request->school_id
+                :null,
+            'educator_id' => isset($request->educator_id)&&!$forUpdate
+                ?(int)$request->educator_id
+                :null,
+            'text'        => $request->text,
+//            'priority'    => (string)config('DiscussionCorner.panel.post_priority_values')[$request->priority],
+            'priority'    => (int)$request->priority,
+            'user_type'   => $user->account_type,
+            'is_approved'  => $is_approved,
+            'pictures'  => $request->pictures,
+            'videos'  => $request->videos,
+            'post_files'     => $request->post_files,
+
+            'deleted_picture_ids'  => $forUpdate?$request->deleted_picture_ids:null,
+            'deleted_file_ids'     => $forUpdate?$request->deleted_file_ids:null,
+            'deleted_video_ids'    => $forUpdate?$request->deleted_video_ids:null,
+
+        ]);
+    }
+
+//    public static function prepareForCreate($request,$is_approved,$user){
+//        return new self([
+//            'user_id'    => (int)$user->id,
+//            'school_id'   => isset($request->school_id)?(int)$request->school_id:null,
+//            'educator_id' => isset($request->educator_id)?(int)$request->educator_id:null,
+//            'text'        => $request->text,
+////            'priority'    => (string)config('DiscussionCorner.panel.post_priority_values')[$request->priority],
+//            'priority'    => (string)$request->priority,
+//            'user_type'   => $user->account_type,
+//            'is_approved'  => (bool)$is_approved,
+//            'pictures'  => $request->pictures,
+//            'videos'  => $request->videos,
+//            'post_files'     => $request->post_files,
+//
+//        ]);
+//    }
+//
+//    public static function prepareForUpdate($request,$is_approved){
+//        $user = $request->user();
+//        return new self([
+//            'user_id'   => $user->id,
+//            'school_id'   => null,
+//            'educator_id' => null,
+//            'text'        => $request->text,
+//            'priority'    => (string)$request->priority,
+//            'user_type'   => $user->account_type,
+//            'is_approved'  => (bool)$is_approved,
+//            'pictures'  => $request->pictures,
+//            'videos'  => $request->videos,
+//            'post_files'     => $request->post_files,
+//
+//            'deleted_picture_ids'  => $request->deleted_picture_ids,
+//            'deleted_file_ids'     => $request->deleted_file_ids,
+//            'deleted_video_ids'    => $request->deleted_video_ids,
+//
+//        ]);
+//    }
+
+
+    public function allWithoutRelations(): array
+    {
+        return [
+            'user_id'    => $this->user_id,
+            'school_id'  => $this->school_id,
+            'educator_id'=> $this->educator_id,
+            'text'       => $this->text,
+            'priority'   => $this->priority,
+            'user_type'  => $this->user_type,
+            'is_approved'=> $this->is_approved,
+
+        ];
+    }
+
+}
